@@ -524,12 +524,12 @@ node_configs:
           -c " network 10.0.0.60/30 area 0.0.0.0"
 
 test:
-  - cmds:
-    # P2P Link test
-    - cmd: docker exec C1 ping -c2 172.16.0.13
-    - cmd: docker exec C2 ping -c2 172.16.0.1
-    - cmd: docker exec C3 ping -c2 172.16.0.21
-    - cmd: docker exec C4 ping -c2 172.16.0.5
-    - cmd: docker exec C5 ping -c2 172.16.0.21
-    - cmd: docker exec C6 ping -c2 172.16.0.13
+  - name: pingfest
+    cmds:
+      - cmd: docker exec C1 ping -c2 172.16.0.13
+      - cmd: docker exec C2 ping -c2 172.16.0.1
+      - cmd: docker exec C3 ping -c2 172.16.0.21
+      - cmd: docker exec C4 ping -c2 172.16.0.5
+      - cmd: docker exec C5 ping -c2 172.16.0.21
+      - cmd: docker exec C6 ping -c2 172.16.0.13
 
