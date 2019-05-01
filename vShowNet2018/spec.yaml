@@ -1,0 +1,535 @@
+
+# DESCRIPTION: vShowNet2018
+# INIT:
+#    cns spec.yaml init | sudo sh
+#    cns spec.yaml conf | sudo sh
+#    cns spec.yaml test | sudo sh
+# FINI:
+#    cns spec.yaml fini | sudo sh
+# TOPO:
+#
+
+nodes:
+  - name: R5
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R7#net2 }
+      - { name: net1, type: direct, args: R6#net1 }
+      - { name: net2, type: direct, args: C5#net0 }
+      - { name: net3, type: direct, args: R15#net0 }
+  - name: R6
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R8#net2 }
+      - { name: net1, type: direct, args: R5#net1 }
+      - { name: net2, type: direct, args: C6#net0 }
+      - { name: net3, type: direct, args: R16#net0 }
+  - name: R7
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R9#net1 }
+      - { name: net1, type: direct, args: R11#net1 }
+      - { name: net2, type: direct, args: R5#net0 }
+      - { name: net3, type: direct, args: R8#net3 }
+      - { name: net4, type: direct, args: R13#net1 }
+  - name: R8
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R10#net1 }
+      - { name: net1, type: direct, args: R14#net1 }
+      - { name: net2, type: direct, args: R6#net0 }
+      - { name: net3, type: direct, args: R7#net3 }
+      - { name: net4, type: direct, args: R12#net1 }
+  - name: R9
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C2#net0 }
+      - { name: net1, type: direct, args: R7#net0 }
+      - { name: net2, type: direct, args: R15#net1 }
+  - name: R10
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C3#net0 }
+      - { name: net1, type: direct, args: R8#net0 }
+      - { name: net2, type: direct, args: R16#net1 }
+  - name: R11
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R12#net2 }
+      - { name: net1, type: direct, args: R7#net1 }
+  - name: R12
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C1#net0 }
+      - { name: net1, type: direct, args: R8#net4 }
+      - { name: net2, type: direct, args: R11#net0 }
+  - name: R13
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C4#net0 }
+      - { name: net1, type: direct, args: R7#net4 }
+      - { name: net2, type: direct, args: R14#net0 }
+  - name: R14
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R13#net2 }
+      - { name: net1, type: direct, args: R8#net1 }
+  - name: R15
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R5#net3 }
+      - { name: net1, type: direct, args: R9#net2 }
+  - name: R16
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R6#net3 }
+      - { name: net1, type: direct, args: R10#net2 }
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R12#net0 }
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R9#net0 }
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R10#net0 }
+  - name: C4
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R13#net0 }
+  - name: C5
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R5#net2 }
+  - name: C6
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R6#net2 }
+
+node_configs:
+  - name: C1
+    cmds:
+      - cmd: ip addr add 172.16.0.9/30 dev net0
+      - cmd: ip route replace default via 172.16.0.10
+  - name: C2
+    cmds:
+      - cmd: ip addr add 172.16.0.13/30 dev net0
+      - cmd: ip route replace default via 172.16.0.14
+  - name: C3
+    cmds:
+      - cmd: ip addr add 172.16.0.17/30 dev net0
+      - cmd: ip route replace default via 172.16.0.18
+  - name: C4
+    cmds:
+      - cmd: ip addr add 172.16.0.21/30 dev net0
+      - cmd: ip route replace default via 172.16.0.22
+  - name: C5
+    cmds:
+      - cmd: ip addr add 172.16.0.1/30 dev net0
+      - cmd: ip route replace default via 172.16.0.2
+  - name: C6
+    cmds:
+      - cmd: ip addr add 172.16.0.5/30 dev net0
+      - cmd: ip route replace default via 172.16.0.6
+  - name: R5
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.5/32 dev lo
+      - cmd: ip addr add 10.0.0.9/30 dev net0
+      - cmd: ip addr add 10.0.0.1/30 dev net1
+      - cmd: ip addr add 172.16.0.2/30 dev net2
+      - cmd: ip addr add 10.0.0.49/30 dev net2
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net3"
+          -c " ip ospf cost 20010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.5"
+          -c " network 10.0.0.8/30 area 0.0.0.0"
+          -c " network 10.0.0.0/30 area 0.0.0.0"
+          -c " network 172.16.0.0/30 area 0.0.0.0"
+          -c " network 10.0.0.48/30 area 0.0.0.0"
+  - name: R6
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.6/32 dev lo
+      - cmd: ip addr add 10.0.0.13/30 dev net0
+      - cmd: ip addr add 10.0.0.2/30 dev net1
+      - cmd: ip addr add 172.16.0.6/30 dev net2
+      - cmd: ip addr add 10.0.0.57/30 dev net3
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 1010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net3"
+          -c " ip ospf cost 21010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.6"
+          -c " network 10.0.0.12/30 area 0.0.0.0"
+          -c " network 10.0.0.0/30 area 0.0.0.0"
+          -c " network 172.16.0.4/30 area 0.0.0.0"
+          -c " network 10.0.0.56/30 area 0.0.0.0"
+  - name: R7
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.7/32 dev lo
+      - cmd: ip addr add 10.0.0.29/30 dev net0
+      - cmd: ip addr add 10.0.0.18/30 dev net1
+      - cmd: ip addr add 10.0.0.10/30 dev net2
+      - cmd: ip addr add 10.0.0.5/30 dev net3
+      - cmd: ip addr add 10.0.0.41/30 dev net4
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net3"
+          -c " ip ospf cost 110"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net4"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.7"
+          -c " network 10.0.0.28/30 area 0.0.0.0"
+          -c " network 10.0.0.16/30 area 0.0.0.0"
+          -c " network 10.0.0.8/30 area 0.0.0.0"
+          -c " network 10.0.0.4/30 area 0.0.0.0"
+          -c " network 10.0.0.40/30 area 0.0.0.0"
+  - name: R8
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.8/32 dev lo
+      - cmd: ip addr add 10.0.0.33/30 dev net0
+      - cmd: ip addr add 10.0.0.21/30 dev net1
+      - cmd: ip addr add 10.0.0.14/30 dev net2
+      - cmd: ip addr add 10.0.0.6/30 dev net3
+      - cmd: ip addr add 10.0.0.45/30 dev net4
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 1010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 1210"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 1010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net3"
+          -c " ip ospf cost 110"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net4"
+          -c " ip ospf cost 1110"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.8"
+          -c " network 10.0.0.32/30 area 0.0.0.0"
+          -c " network 10.0.0.20/30 area 0.0.0.0"
+          -c " network 10.0.0.12/30 area 0.0.0.0"
+          -c " network 10.0.0.4/30 area 0.0.0.0"
+          -c " network 10.0.0.44/30 area 0.0.0.0"
+  - name: R9
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.9/32 dev lo
+      - cmd: ip addr add 172.16.0.14/30 dev net0
+      - cmd: ip addr add 10.0.0.30/30 dev net1
+      - cmd: ip addr add 10.0.0.54/30 dev net2
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 20010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.9"
+          -c " network 10.0.0.28/30 area 0.0.0.0"
+          -c " network 172.16.0.12/30 area 0.0.0.0"
+          -c " network 10.0.0.52/30 area 0.0.0.0"
+  - name: R10
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.10/32 dev lo
+      - cmd: ip addr add 172.16.0.18/30 dev net0
+      - cmd: ip addr add 10.0.0.34/30 dev net1
+      - cmd: ip addr add 10.0.0.62/30 dev net2
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net1"
+          -c " ip ospf cost 1010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 21010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.10"
+          -c " network 10.0.0.32/30 area 0.0.0.0"
+          -c " network 172.16.0.16/30 area 0.0.0.0"
+          -c " network 10.0.0.60/30 area 0.0.0.0"
+  - name: R11
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.11/32 dev lo
+      - cmd: ip addr add 10.0.0.25/30 dev net0
+      - cmd: ip addr add 10.0.0.17/30 dev net1
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.11"
+          -c " network 10.0.0.24/30 area 0.0.0.0"
+          -c " network 10.0.0.16/30 area 0.0.0.0"
+  - name: R12
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.12/32 dev lo
+      - cmd: ip addr add 172.16.0.10/30 dev net0
+      - cmd: ip addr add 10.0.0.46/30 dev net1
+      - cmd: ip addr add 10.0.0.26/30 dev net2
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net1"
+          -c " ip ospf cost 1110"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.12"
+          -c " network 172.16.0.8/30 area 0.0.0.0"
+          -c " network 10.0.0.44/30 area 0.0.0.0"
+          -c " network 10.0.0.24/30 area 0.0.0.0"
+  - name: R13
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.13/32 dev lo
+      - cmd: ip addr add 172.16.0.22/30 dev net0
+      - cmd: ip addr add 10.0.0.42/30 dev net1
+      - cmd: ip addr add 10.0.0.38/30 dev net2
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net1"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net2"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.13"
+          -c " network 172.16.0.20/30 area 0.0.0.0"
+          -c " network 10.0.0.40/30 area 0.0.0.0"
+          -c " network 10.0.0.36/30 area 0.0.0.0"
+  - name: R14
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.14/32 dev lo
+      - cmd: ip addr add 10.0.0.37/30 dev net0
+      - cmd: ip addr add 10.0.0.22/30 dev net1
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 10"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 1210"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.14"
+          -c " network 10.0.0.36/30 area 0.0.0.0"
+          -c " network 10.0.0.20/30 area 0.0.0.0"
+  - name: R15
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.15/32 dev lo
+      - cmd: ip addr add 10.0.0.50/30 dev net0
+      - cmd: ip addr add 10.0.0.53/30 dev net1
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 20010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 20010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.15"
+          -c " network 10.0.0.48/30 area 0.0.0.0"
+          -c " network 10.0.0.52/30 area 0.0.0.0"
+  - name: R16
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: ip addr add 10.0.1.16/32 dev lo
+      - cmd: ip addr add 10.0.0.58/30 dev net0
+      - cmd: ip addr add 10.0.0.61/30 dev net1
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip ospf cost 1"
+          -c "interface net0"
+          -c " ip ospf cost 21010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "interface net1"
+          -c " ip ospf cost 21010"
+          -c " ip ospf authentication message-digest"
+          -c " ip ospf message-digest-key 11 md5 shownetospf"
+          -c " ip ospf hello-interval 1"
+          -c " ip ospf dead-interval 4"
+          -c "router ospf"
+          -c " ospf router-id 10.0.1.16"
+          -c " network 10.0.0.56/30 area 0.0.0.0"
+          -c " network 10.0.0.60/30 area 0.0.0.0"
+
+test:
+  - cmds:
+    # P2P Link test
+    - cmd: docker exec C1 ping -c2 172.16.0.13
+    - cmd: docker exec C2 ping -c2 172.16.0.1
+    - cmd: docker exec C3 ping -c2 172.16.0.21
+    - cmd: docker exec C4 ping -c2 172.16.0.5
+    - cmd: docker exec C5 ping -c2 172.16.0.21
+    - cmd: docker exec C6 ping -c2 172.16.0.13
+
