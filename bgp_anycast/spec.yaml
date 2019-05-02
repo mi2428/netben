@@ -1,0 +1,163 @@
+
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C1#net0 }
+      - { name: net1, type: direct, args: R3#net1 }
+      - { name: net2, type: direct, args: R2#net2 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C2#net0 }
+      - { name: net1, type: direct, args: R4#net1 }
+      - { name: net2, type: direct, args: R1#net2 }
+
+  - name: R3
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C3#net0 }
+      - { name: net1, type: direct, args: R1#net1 }
+
+  - name: R4
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C4#net0 }
+      - { name: net1, type: direct, args: R2#net1 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R3#net0 }
+
+  - name: C4
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R4#net0 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.1.0.1/32"
+          -c "interface net0"
+          -c " ip address 192.168.1.254/24"
+          -c "interface net1"
+          -c " ip address 10.0.1.1/24"
+          -c "interface net2"
+          -c " ip address 10.0.0.1/24"
+          -c "router bgp 65001"
+          -c " bgp router-id 10.1.0.1"
+          -c " neighbor 10.0.1.2 remote-as 65003"
+          -c " neighbor 10.0.0.2 remote-as 65002"
+          -c " network 10.0.1.0/24"
+          -c " network 10.0.0.0/24"
+          -c " network 192.168.1.0/24"
+
+  - name: R2
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.1.0.2/32"
+          -c "interface net0"
+          -c " ip address 192.168.2.254/24"
+          -c "interface net1"
+          -c " ip address 10.0.2.1/24"
+          -c "interface net2"
+          -c " ip address 10.0.0.2/24"
+          -c "router bgp 65002"
+          -c " bgp router-id 10.1.0.2"
+          -c " neighbor 10.0.2.2 remote-as 65004"
+          -c " neighbor 10.0.0.1 remote-as 65001"
+          -c " network 10.0.2.0/24"
+          -c " network 10.0.0.0/24"
+          -c " network 192.168.2.0/24"
+
+  - name: R3
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.1.0.3/32"
+          -c "interface net0"
+          -c " ip address 172.16.0.254/16"
+          -c "interface net1"
+          -c " ip address 10.0.1.2/24"
+          -c "router bgp 65003"
+          -c " bgp router-id 10.1.0.3"
+          -c " neighbor 10.0.1.1 remote-as 65001"
+          -c " network 10.0.1.0/24"
+          -c " network 172.16.0.0/16"
+
+  - name: R4
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.1.0.4/32"
+          -c "interface net0"
+          -c " ip address 172.16.0.254/16"
+          -c "interface net1"
+          -c " ip address 10.0.2.2/24"
+          -c "router bgp 65004"
+          -c " bgp router-id 10.1.0.4"
+          -c " neighbor 10.0.2.1 remote-as 65002"
+          -c " network 10.0.2.0/24"
+          -c " network 172.16.0.0/16"
+
+  - name: C1
+    cmds:
+      - cmd: ip addr add 192.168.1.1/24 dev net0
+      - cmd: ip route replace default via 192.168.1.254
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: ip addr add 192.168.2.1/24 dev net0
+      - cmd: ip route replace default via 192.168.2.254
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C3
+    cmds:
+      - cmd: ip addr add 172.16.0.1/16 dev net0
+      - cmd: ip route replace default via 172.16.0.254
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C4
+    cmds:
+      - cmd: ip addr add 172.16.0.1/16 dev net0
+      - cmd: ip route replace default via 172.16.0.254
+      - cmd: sh -c "echo C4 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - name: e2e
+    cmds:
+      - cmd: docker exec C1 ping -c 2 172.16.0.1
+      - cmd: docker exec C2 ping -c 2 172.16.0.1
+      - cmd: docker exec C1 ping -c 2 192.168.2.1
+      - cmd: docker exec C2 ping -c 2 192.168.1.1
+      - cmd: docker exec C3 ping -c 2 192.168.1.1
+      - cmd: docker exec C4 ping -c 2 192.168.2.1
+
