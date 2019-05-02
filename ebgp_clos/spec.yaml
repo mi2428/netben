@@ -1,0 +1,251 @@
+
+nodes:
+  - name: S1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: L1#net1 }
+      - { name: net1, type: direct, args: L2#net1 }
+      - { name: net2, type: direct, args: L3#net1 }
+      - { name: net3, type: direct, args: L4#net1 }
+
+  - name: S2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: L1#net2 }
+      - { name: net1, type: direct, args: L2#net2 }
+      - { name: net2, type: direct, args: L3#net2 }
+      - { name: net3, type: direct, args: L4#net2 }
+
+  - name: L1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C1#net0 }
+      - { name: net1, type: direct, args: S1#net0 }
+      - { name: net2, type: direct, args: S2#net0 }
+
+  - name: L2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C2#net0 }
+      - { name: net1, type: direct, args: S1#net1 }
+      - { name: net2, type: direct, args: S2#net1 }
+
+  - name: L3
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C3#net0 }
+      - { name: net1, type: direct, args: S1#net2 }
+      - { name: net2, type: direct, args: S2#net2 }
+
+  - name: L4
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: C4#net0 }
+      - { name: net1, type: direct, args: S1#net3 }
+      - { name: net2, type: direct, args: S2#net3 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: L1#net0 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: L2#net0 }
+
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: L3#net0 }
+
+  - name: C4
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: L4#net0 }
+
+node_configs:
+  - name: S1
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.11/32"
+          -c "interface net0"
+          -c " ip address 10.1.0.1/30"
+          -c "interface net1"
+          -c " ip address 10.1.1.1/30"
+          -c "interface net2"
+          -c " ip address 10.1.2.1/30"
+          -c "interface net3"
+          -c " ip address 10.1.3.1/30"
+          -c "router bgp 65000"
+          -c " bgp router-id 10.0.0.11"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.1.0.2 remote-as 65001"
+          -c " neighbor 10.1.1.2 remote-as 65002"
+          -c " neighbor 10.1.2.2 remote-as 65003"
+          -c " neighbor 10.1.3.2 remote-as 65004"
+          -c " network 10.1.0.0/30"
+          -c " network 10.1.1.0/30"
+          -c " network 10.1.2.0/30"
+          -c " network 10.1.3.0/30"
+
+  - name: S2
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.12/32"
+          -c "interface net0"
+          -c " ip address 10.2.0.1/30"
+          -c "interface net1"
+          -c " ip address 10.2.1.1/30"
+          -c "interface net2"
+          -c " ip address 10.2.2.1/30"
+          -c "interface net3"
+          -c " ip address 10.2.3.1/30"
+          -c "router bgp 65000"
+          -c " bgp router-id 10.0.0.12"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.2.0.2 remote-as 65001"
+          -c " neighbor 10.2.1.2 remote-as 65002"
+          -c " neighbor 10.2.2.2 remote-as 65003"
+          -c " neighbor 10.2.3.2 remote-as 65004"
+          -c " network 10.2.0.0/30"
+          -c " network 10.2.1.0/30"
+          -c " network 10.2.2.0/30"
+          -c " network 10.2.3.0/30"
+
+  - name: L1
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.1/32"
+          -c "interface net0"
+          -c " ip address 192.168.1.254/24"
+          -c "interface net1"
+          -c " ip address 10.1.0.2/30"
+          -c "interface net2"
+          -c " ip address 10.2.0.2/30"
+          -c "router bgp 65001"
+          -c " bgp router-id 10.0.0.1"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.1.0.1 remote-as 65000"
+          -c " neighbor 10.2.0.1 remote-as 65000"
+          -c " network 10.1.0.0/30"
+          -c " network 10.2.0.0/30"
+          -c " network 192.168.1.0/24"
+
+  - name: L2
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.2/32"
+          -c "interface net0"
+          -c " ip address 192.168.2.254/24"
+          -c "interface net1"
+          -c " ip address 10.1.1.2/30"
+          -c "interface net2"
+          -c " ip address 10.2.1.2/30"
+          -c "router bgp 65002"
+          -c " bgp router-id 10.0.0.2"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.1.1.1 remote-as 65000"
+          -c " neighbor 10.2.1.1 remote-as 65000"
+          -c " network 10.1.1.0/30"
+          -c " network 10.2.1.0/30"
+          -c " network 192.168.2.0/24"
+
+  - name: L3
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.3/32"
+          -c "interface net0"
+          -c " ip address 192.168.3.254/24"
+          -c "interface net1"
+          -c " ip address 10.1.2.2/30"
+          -c "interface net2"
+          -c " ip address 10.2.2.2/30"
+          -c "router bgp 65003"
+          -c " bgp router-id 10.0.0.3"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.1.2.1 remote-as 65000"
+          -c " neighbor 10.2.2.1 remote-as 65000"
+          -c " network 10.1.2.0/30"
+          -c " network 10.2.2.0/30"
+          -c " network 192.168.3.0/24"
+
+  - name: L4
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.0.0.4/32"
+          -c "interface net0"
+          -c " ip address 192.168.4.254/24"
+          -c "interface net1"
+          -c " ip address 10.1.3.2/30"
+          -c "interface net2"
+          -c " ip address 10.2.3.2/30"
+          -c "router bgp 65004"
+          -c " bgp router-id 10.0.0.4"
+          -c " bgp bestpath as-path multipath-relax"
+          -c " bgp bestpath compare-routerid"
+          -c " neighbor 10.1.3.1 remote-as 65000"
+          -c " neighbor 10.2.3.1 remote-as 65000"
+          -c " network 10.1.3.0/30"
+          -c " network 10.2.3.0/30"
+          -c " network 192.168.4.0/24"
+
+  - name: C1
+    cmds:
+      - cmd: ip addr add 192.168.1.1/24 dev net0
+      - cmd: ip route replace default via 192.168.1.254
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: ip addr add 192.168.2.1/24 dev net0
+      - cmd: ip route replace default via 192.168.2.254
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C3
+    cmds:
+      - cmd: ip addr add 192.168.3.1/24 dev net0
+      - cmd: ip route replace default via 192.168.3.254
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C4
+    cmds:
+      - cmd: ip addr add 192.168.4.1/24 dev net0
+      - cmd: ip route replace default via 192.168.4.254
+      - cmd: sh -c "echo C4 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+test:
+  - name: e2e
+    cmds:
+      - cmd: docker exec C1 ping -c 2 192.168.2.1
+      - cmd: docker exec C1 ping -c 2 192.168.3.1
+      - cmd: docker exec C1 ping -c 2 192.168.4.1
+      - cmd: docker exec C2 ping -c 2 192.168.3.1
+      - cmd: docker exec C2 ping -c 2 192.168.4.1
+      - cmd: docker exec C3 ping -c 2 192.168.4.1
