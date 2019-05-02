@@ -69,6 +69,7 @@ node_configs:
           -c " neighbor 10.0.0.10 remote-as 65000"
           -c " neighbor 10.0.0.20 remote-as 65000"
           -c " neighbor 10.0.0.30 remote-as 65000"
+          -c " network 10.1.0.0/24"
 
   - name: R2
     cmds:
@@ -82,9 +83,9 @@ node_configs:
           -c "interface net1"
           -c " ip address 192.168.0.1/24"
           -c "router bgp 65000"
-          -c " bgp router-id 10.10.0.10"
+          -c " bgp router-id 10.10.0.2"
           -c " neighbor 10.0.0.1 remote-as 65000"
-          -c " network 192.168.0.0/24"
+          -c " network 192.168.0.2/32"
 
   - name: R3
     cmds:
@@ -98,9 +99,9 @@ node_configs:
           -c "interface net1"
           -c " ip address 192.168.0.1/24"
           -c "router bgp 65000"
-          -c " bgp router-id 10.10.0.20"
+          -c " bgp router-id 10.10.0.3"
           -c " neighbor 10.0.0.1 remote-as 65000"
-          -c " network 192.168.0.0/24"
+          -c " network 192.168.0.2/32"
 
   - name: R4
     cmds:
@@ -114,9 +115,9 @@ node_configs:
           -c "interface net1"
           -c " ip address 192.168.0.1/24"
           -c "router bgp 65000"
-          -c " bgp router-id 10.10.0.30"
+          -c " bgp router-id 10.10.0.4"
           -c " neighbor 10.0.0.1 remote-as 65000"
-          -c " network 192.168.0.0/24"
+          -c " network 192.168.0.2/32"
 
   - name: C1
     cmds:
