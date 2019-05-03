@@ -1,0 +1,3 @@
+[submodule "tinet"]
+	path = tinet
+	url = https://github.com/slankdev/tinet.git
