@@ -1,0 +1,185 @@
+
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+      - { name: net1, type: direct, args: R2#net1 }
+      - { name: net2, type: direct, args: C1#net0 }
+      - { name: net3, type: direct, args: C2#net0 }
+      - { name: net4, type: direct, args: C3#net0 }
+      - { name: net5, type: direct, args: C4#net0 }
+      - { name: net6, type: direct, args: R2#net6 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+      - { name: net1, type: direct, args: R1#net1 }
+      - { name: net2, type: direct, args: C5#net0 }
+      - { name: net3, type: direct, args: C6#net0 }
+      - { name: net4, type: direct, args: C7#net0 }
+      - { name: net5, type: direct, args: C8#net0 }
+      - { name: net6, type: direct, args: R1#net6 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net2 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net3 }
+
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net4 }
+
+  - name: C4
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net5 }
+
+  - name: C5
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net2 }
+
+  - name: C6
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net3 }
+
+  - name: C7
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net4 }
+
+  - name: C8
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net5 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: ip link add expvrf11 type vrf table 11
+      - cmd: ip link set dev expvrf11 up
+      - cmd: ip addr add 10.2.0.1/30 dev net0
+      - cmd: ip addr add 172.16.1.1/24 dev net2
+      - cmd: ip addr add 172.16.2.1/24 dev net3
+      - cmd: ip link set dev net0 master expvrf11
+      - cmd: ip link set dev net2 master expvrf11
+      - cmd: ip link set dev net3 master expvrf11
+      - cmd: ip link set dev net0 up
+      - cmd: ip link set dev net2 up
+      - cmd: ip link set dev net3 up
+
+      - cmd: ip link add expvrf12 type vrf table 12
+      - cmd: ip link set dev expvrf12 up
+      - cmd: ip addr add 10.3.0.1/30 dev net1
+      - cmd: ip addr add 172.16.3.1/24 dev net4
+      - cmd: ip addr add 172.16.4.1/24 dev net5
+      - cmd: ip link set dev net1 master expvrf12
+      - cmd: ip link set dev net4 master expvrf12
+      - cmd: ip link set dev net5 master expvrf12
+      - cmd: ip link set dev net1 up
+      - cmd: ip link set dev net4 up
+      - cmd: ip link set dev net5 up
+
+  - name: R2
+    cmds:
+      - cmd: ip link add expvrf21 type vrf table 21
+      - cmd: ip link set dev expvrf21 up
+      - cmd: ip addr add 10.2.0.2/30 dev net0
+      - cmd: ip addr add 172.16.5.1/24 dev net2
+      - cmd: ip addr add 172.16.6.1/24 dev net3
+      - cmd: ip link set dev net0 master expvrf21
+      - cmd: ip link set dev net2 master expvrf21
+      - cmd: ip link set dev net3 master expvrf21
+      - cmd: ip link set dev net0 up
+      - cmd: ip link set dev net2 up
+      - cmd: ip link set dev net3 up
+
+      - cmd: ip link add expvrf22 type vrf table 22
+      - cmd: ip link set dev expvrf22 up
+      - cmd: ip addr add 10.3.0.2/30 dev net1
+      - cmd: ip addr add 172.16.7.1/24 dev net4
+      - cmd: ip addr add 172.16.8.1/24 dev net5
+      - cmd: ip link set dev net1 master expvrf22
+      - cmd: ip link set dev net4 master expvrf22
+      - cmd: ip link set dev net5 master expvrf22
+      - cmd: ip link set dev net1 up
+      - cmd: ip link set dev net4 up
+      - cmd: ip link set dev net5 up
+
+  - name: C1
+    cmds:
+      - cmd: ip addr add 172.16.1.2/24 dev net0
+      - cmd: ip route replace default via 172.16.1.1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: ip addr add 172.16.2.2/24 dev net0
+      - cmd: ip route replace default via 172.16.2.1
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C3
+    cmds:
+      - cmd: ip addr add 172.16.3.2/24 dev net0
+      - cmd: ip route replace default via 172.16.3.1
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C4
+    cmds:
+      - cmd: ip addr add 172.16.4.2/24 dev net0
+      - cmd: ip route replace default via 172.16.4.1
+      - cmd: sh -c "echo C4 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C5
+    cmds:
+      - cmd: ip addr add 172.16.5.2/24 dev net0
+      - cmd: ip route replace default via 172.16.5.1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C6
+    cmds:
+      - cmd: ip addr add 172.16.6.2/24 dev net0
+      - cmd: ip route replace default via 172.16.6.1
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C7
+    cmds:
+      - cmd: ip addr add 172.16.7.2/24 dev net0
+      - cmd: ip route replace default via 172.16.7.1
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C8
+    cmds:
+      - cmd: ip addr add 172.16.8.2/24 dev net0
+      - cmd: ip route replace default via 172.16.8.1
+      - cmd: sh -c "echo C4 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - name: p2p
+    cmds:
+      - cmd: docker exec C1 ping -c2 172.16.5.2
+      - cmd: docker exec C1 ping -c2 172.16.6.2
+      - cmd: docker exec C2 ping -c2 172.16.5.2
+      - cmd: docker exec C2 ping -c2 172.16.6.2
+      - cmd: docker exec C3 ping -c2 172.16.7.2
+      - cmd: docker exec C3 ping -c2 172.16.8.2
+      - cmd: docker exec C4 ping -c2 172.16.7.2
+      - cmd: docker exec C4 ping -c2 172.16.8.2
+
