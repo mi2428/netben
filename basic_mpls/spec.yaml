@@ -1,0 +1,148 @@
+pre_init:
+  - cmds:
+      - cmd: modprobe mpls_router
+      - cmd: modprobe mpls_gso
+      - cmd: modprobe mpls_iptunnel
+
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+      - { name: net1, type: direct, args: C1#net0 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+      - { name: net1, type: direct, args: R3#net0 }
+      - { name: net2, type: direct, args: R4#net0 }
+
+  - name: R3
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net1 }
+      - { name: net1, type: direct, args: R5#net1 }
+
+  - name: R4
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net2 }
+      - { name: net1, type: direct, args: R5#net2 }
+
+  - name: R5
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R6#net0 }
+      - { name: net1, type: direct, args: R3#net1 }
+      - { name: net2, type: direct, args: R4#net1 }
+
+  - name: R6
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R5#net0 }
+      - { name: net1, type: direct, args: C2#net0 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net1 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R6#net1 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.1.1/24 dev net0
+      - cmd: ip addr add 192.168.0.1/24 dev net1
+      - cmd: ip route add 192.168.1.2/32 encap mpls 100 via inet 10.0.1.2
+
+  - name: R2
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net2.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.1.2/24 dev net0
+      - cmd: ip addr add 10.0.2.2/24 dev net1
+      - cmd: ip addr add 10.0.3.2/24 dev net2
+      - cmd: ip -M route add 100 via inet 10.0.2.3 as 101
+      - cmd: ip -M route add 200 via inet 10.0.1.1
+
+  - name: R3
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.2.3/24 dev net0
+      - cmd: ip addr add 10.0.4.3/24 dev net1
+      - cmd: ip -M route add 101 via inet 10.0.4.5 as 102
+
+  - name: R4
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.3.4/24 dev net0
+      - cmd: ip addr add 10.0.5.4/24 dev net1
+      - cmd: ip -M route add 200 via inet 10.0.3.2 as 200
+
+  - name: R5
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net2.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.6.5/24 dev net0
+      - cmd: ip addr add 10.0.4.5/24 dev net1
+      - cmd: ip addr add 10.0.5.5/24 dev net2
+      - cmd: ip -M route add 102 via inet 10.0.6.6
+      - cmd: ip -M route add 200 via inet 10.0.5.4 as 200
+
+  - name: R6
+    cmds:
+      - cmd: sysctl -w net.ipv4.ip_forward=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.lo.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net0.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.conf.net1.input=1 > /dev/null
+      - cmd: sysctl -w net.mpls.platform_labels=1024 > /dev/null
+      - cmd: ip addr add 10.0.6.6/24 dev net0
+      - cmd: ip addr add 192.168.1.1/24 dev net1
+      - cmd: ip route add 192.168.0.2/32 encap mpls 200 via inet 10.0.6.5
+
+  - name: C1
+    cmds:
+      - cmd: ip addr add 192.168.0.2/24 dev net0
+      - cmd: ip route replace default via 192.168.0.1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: ip addr add 192.168.1.2/24 dev net0
+      - cmd: ip route replace default via 192.168.1.1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - name: e2e
+    cmds:
+      - cmd: docker exec C1 ping -c 2 -t 6 192.168.1.2
+      - cmd: docker exec C2 ping -c 2 -t 6 192.168.0.2
+
