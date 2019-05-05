@@ -33,7 +33,7 @@ node_configs:
       - cmd: ip -6 addr add fd00:1::1/64 dev net1
       - cmd: ip -6 route add fc00:2::/64 via 2001:10::2
       - cmd: ip -6 route add fd00:2::/64 encap seg6 mode inline segs fc00:2::10 dev net0
-      - cmd: ip -6 route add fc00:1::10/128 encap seg6local action End.DX6 nh6 fd00:1::2 dev net1
+      - cmd: ip -6 route add fc00:2::10/128 encap seg6local action End via fd00:1::2
 
   - name: R2
     cmds:
@@ -46,7 +46,7 @@ node_configs:
       - cmd: ip -6 addr add fd00:2::1/64 dev net1
       - cmd: ip -6 route add fc00:1::/64 via 2001:10::1
       - cmd: ip -6 route add fd00:1::/64 encap seg6 mode inline segs fc00:1::10 dev net0
-      - cmd: ip -6 route add fc00:2::10/128 encap seg6local action End.DX6 nh6 fd00:2::2 dev net1
+      - cmd: ip -6 route add fc00:2::10/128 encap seg6local action End.X nh6 fd00:2::2 via fd00:2::2
 
   - name: C1
     cmds:
