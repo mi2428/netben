@@ -66,6 +66,7 @@ node_configs:
           -c "router ospf6"
           -c " ospf6 router-id 10.0.0.1"
           -c " interface net0 area 0.0.0.0"
+          -c " interface net1 area 0.0.0.0"
 
   - name: R2
     cmds:
@@ -116,6 +117,7 @@ node_configs:
           -c "router ospf6"
           -c " ospf6 router-id 10.0.0.3"
           -c " interface net0 area 0.0.0.0"
+          -c " interface net1 area 0.0.0.0"
 
   - name: S1
     cmds:
@@ -123,16 +125,11 @@ node_configs:
       - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
       - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
       - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
-      - cmd: /usr/lib/frr/frr start
-      - cmd: >-
-          vtysh -c "conf t"
-          -c "interface net0"
-          -c " ipv6 address fc00:b::10/64"
-          -c " ipv6 ospf6 hello-interval 1"
-          -c " ipv6 ospf6 dead-interval 4"
-          -c "router ospf6"
-          -c " ospf6 router-id 10.0.0.4"
-          -c " interface net0 area 0.0.0.0"
+      - cmd: ip -6 addr add fc00:b::10/64 dev net0
+      - cmd: ip -6 route add fc00:a::/64  via fc00:b::1
+      - cmd: ip -6 route add fc00:c::/64  via fc00:b::1
+      - cmd: ip -6 route add fc00:12::/64 via fc00:b::1
+      - cmd: ip -6 route add fc00:23::/64 via fc00:b::1
 
   - name: S2
     cmds:
@@ -140,17 +137,11 @@ node_configs:
       - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
       - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
       - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
-      - cmd: /usr/lib/frr/frr start
-      - cmd: >-
-          vtysh -c "conf t"
-          -c "interface net0"
-          -c " ipv6 address fc00:b::20/64"
-          -c " ipv6 ospf6 hello-interval 1"
-          -c " ipv6 ospf6 dead-interval 4"
-          -c "router ospf6"
-          -c " ospf6 router-id 10.0.0.5"
-          -c " router-info area 0.0.0.0"
-          -c " interface net0 area 0.0.0.0"
+      - cmd: ip -6 addr add fc00:b::10/64 dev net0
+      - cmd: ip -6 route add fc00:a::/64  via fc00:b::1
+      - cmd: ip -6 route add fc00:c::/64  via fc00:b::1
+      - cmd: ip -6 route add fc00:12::/64 via fc00:b::1
+      - cmd: ip -6 route add fc00:23::/64 via fc00:b::1
 
   - name: C1
     cmds:
