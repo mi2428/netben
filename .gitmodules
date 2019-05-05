@@ -1,3 +1,6 @@
 [submodule "tinet"]
 	path = tinet
 	url = https://github.com/slankdev/tinet.git
+[submodule "netshoot"]
+	path = netshoot
+	url = https://github.com/nicolaka/netshoot.git
