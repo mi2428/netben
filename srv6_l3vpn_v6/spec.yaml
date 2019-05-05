@@ -1,0 +1,94 @@
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+      - { name: net1, type: direct, args: C1#net0 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+      - { name: net1, type: direct, args: C2#net0 }
+      - { name: net2, type: direct, args: C3#net0 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net1 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net1 }
+
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net2 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: ip -6 addr add fc00:1::1/64 dev lo
+      - cmd: ip -6 addr add 2001:10::1/64 dev net0
+      - cmd: ip -6 addr add fd00:1::1/64 dev net1
+      - cmd: ip sr tunsrc set fc00:1::1
+      - cmd: ip -6 route add fc00:2::/64 via 2001:10::2
+      - cmd: ip -6 route add fd00:2::/64 encap seg6 mode encap segs fc00:2::10 dev net0
+      - cmd: ip -6 route add fd00:3::/64 encap seg6 mode encap segs fc00:2::20 dev net0
+      - cmd: ip -6 route add fc00:1::10/128 encap seg6local action End.DX6 nh6 fd00:1::2 dev net1
+
+  - name: R2
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: ip -6 addr add fc00:2::1/64 dev lo
+      - cmd: ip -6 addr add 2001:10::2/64 dev net0
+      - cmd: ip -6 addr add fd00:2::1/64 dev net1
+      - cmd: ip -6 addr add fd00:3::1/64 dev net2
+      - cmd: ip sr tunsrc set fc00:2::1
+      - cmd: ip -6 route add fc00:1::/64 via 2001:10::1
+      - cmd: ip -6 route add fd00:1::/64 encap seg6 mode encap segs fc00:1::10 dev net0
+      - cmd: ip -6 route add fc00:2::10/128 encap seg6local action End.DX6 nh6 fd00:2::2 dev net1
+      - cmd: ip -6 route add fc00:2::20/128 encap seg6local action End.DX6 nh6 fd00:3::2 dev net2
+
+  - name: C1
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: ip -6 addr add fd00:1::2/64 dev net0
+      - cmd: ip -6 route replace default via fd00:1::1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: ip -6 addr add fd00:2::2/64 dev net0
+      - cmd: ip -6 route replace default via fd00:2::1
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C3
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: ip -6 addr add fd00:3::2/64 dev net0
+      - cmd: ip -6 route replace default via fd00:3::1
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+
+test:
+  - name: ping
+    cmds:
+      - cmd: docker exec C1 ping6 -c 2 fd00:2::2
+      - cmd: docker exec C1 ping6 -c 2 fd00:3::2
+      - cmd: docker exec C2 ping6 -c 2 fd00:1::2
+      - cmd: docker exec C3 ping6 -c 2 fd00:1::2
+
