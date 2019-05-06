@@ -4,3 +4,9 @@
 [submodule "netshoot"]
 	path = netshoot
 	url = https://github.com/nicolaka/netshoot.git
+[submodule "sr-tcpdump"]
+	path = sr-tcpdump
+	url = https://github.com/SRouting/SR-tcpdump
+[submodule "sr-sfc-demo"]
+	path = sr-sfc-demo
+	url = https://github.com/SRouting/SR-sfc-demo
