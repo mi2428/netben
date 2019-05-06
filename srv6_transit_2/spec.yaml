@@ -84,14 +84,18 @@ node_configs:
           -c " interface lo area 0.0.0.0"
           -c " interface net0 area 0.0.0.0"
           -c " interface net1 area 0.0.0.0"
-      - cmd: ip -6 route add fc00:4::10/128 encap seg6 mode inline segs fc00:2::1,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::11/128 encap seg6 mode inline segs fc00:2::1,fc00:2::3,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::20/128 encap seg6 mode inline segs fc00:2::1,fc00:5::1,fc00:3::1,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::21/128 encap seg6 mode inline segs fc00:2::1,fc00:2::5,fc00:5::3,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::30/128 encap seg6 mode inline segs fc00:2::1,fc00:6::1,fc00:7::1,fc00:3::1,fc00:fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::31/128 encap seg6 mode inline segs fc00:2::1,fc00:2::6,fc00:3::1,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::40/128 encap seg6 mode inline segs fc00:2::1,fc00:5::1,fc00:6::1,fc00:7::1,fc00::3:1,fc00:4::1 dev net1
-      - cmd: ip -6 route add fc00:4::41/128 encap seg6 mode inline segs fc00:2::1,fc00:2::5,fc00:5::6,fc00:7::1,fc00::3:1,fc00:4::1 dev net1
+      - cmd: ip sr tunsrc set fc00:1::1
+      - cmd: ip -6 route add fd00:2::2/128 encap seg6 mode encap segs fc00:4::10 dev net1
+      - cmd: ip -6 route add fc00:1::10/128 encap seg6local action End.DX6 nh6 fd00:1::2 dev net0
+      #
+      # - cmd: ip -6 route add fc00:4::10/128 encap seg6 mode encap segs fc00:2::1,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::11/128 encap seg6 mode encap segs fc00:2::1,fc00:2::3,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::20/128 encap seg6 mode encap segs fc00:2::1,fc00:5::1,fc00:3::1,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::21/128 encap seg6 mode encap segs fc00:2::1,fc00:2::5,fc00:5::3,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::30/128 encap seg6 mode encap segs fc00:2::1,fc00:6::1,fc00:7::1,fc00:3::1,fc00:fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::31/128 encap seg6 mode encap segs fc00:2::1,fc00:2::6,fc00:3::1,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::40/128 encap seg6 mode encap segs fc00:2::1,fc00:5::1,fc00:6::1,fc00:7::1,fc00::3:1,fc00:4::1 dev net1
+      # - cmd: ip -6 route add fc00:4::41/128 encap seg6 mode encap segs fc00:2::1,fc00:2::5,fc00:5::6,fc00:7::1,fc00::3:1,fc00:4::1 dev net1
 
   - name: R2
     cmds:
@@ -132,14 +136,22 @@ node_configs:
           -c " interface net1 area 0.0.0.0"
           -c " interface net2 area 0.0.0.0"
           -c " interface net3 area 0.0.0.0"
-      - cmd: ip -6 route add fc00:2::3/128 encap seg6local action End.X nh6 fc00:3::1 dev net1
-      - cmd: ip -6 route add fc00:2::5/128 encap seg6local action End.X nh6 fc00:5::1 dev net2
-      - cmd: ip -6 route add fc00:2::6/128 encap seg6local action End.X nh6 fc00:6::1 dev net3
+      # - cmd: ip -6 route add fc00:2::5/128 encap seg6local action End.X nh6 fc00:5::1 dev net2
+      # - cmd: ip -6 route add fc00:2::3/128 encap seg6local action End.X nh6 fc00:3::1 dev net1
+      # - cmd: ip -6 route add fc00:2::5/128 encap seg6local action End.X nh6 fc00:5::1 dev net2
+      # - cmd: ip -6 route add fc00:2::6/128 encap seg6local action End.X nh6 fc00:6::1 dev net3
 
   - name: R3
     cmds:
       - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
       - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+
+      # added for test
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net1.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net2.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net3.seg6_enabled=1'
+
       - cmd: /usr/lib/frr/frr start
       - cmd: >-
           vtysh -c "conf t"
@@ -181,6 +193,8 @@ node_configs:
           vtysh -c "conf t"
           -c "interface lo"
           -c " ipv6 address fc00:4::1/64"
+          -c " ipv6 address fc00:4::10/64"
+          -c " ipv6 address fc00:4::11/64"
           -c " ipv6 ospf6 hello-interval 1"
           -c " ipv6 ospf6 dead-interval 4"
           -c "interface net0"
@@ -196,8 +210,9 @@ node_configs:
           -c " interface lo area 0.0.0.0"
           -c " interface net0 area 0.0.0.0"
           -c " interface net1 area 0.0.0.0"
+      - cmd: ip sr tunsrc set fc00:4::1
+      - cmd: ip -6 route add fd00:1::2/128 encap seg6 mode encap segs fc00:3::1,fc00:2::1,fc00:1::10 dev net1
       - cmd: ip -6 route add fc00:4::10/128 encap seg6local action End.DX6 nh6 fd00:2::2 dev net0
-      - cmd: ip -6 route add fc00:4::11/128 encap seg6local action End.DX6 nh6 fd00:2::2 dev net0
 
   - name: R5
     cmds:
@@ -220,20 +235,18 @@ node_configs:
           -c " ipv6 ospf6 dead-interval 4"
           -c "interface net1"
           -c " ipv6 address 2001:9::5/64"
-          -c " ipv6 ospf6 hello-interval 1"
-          -c " ipv6 ospf6 dead-interval 4"
           -c "interface net2"
           -c " ipv6 address 2001:5::5/64"
           -c " ipv6 ospf6 hello-interval 1"
           -c " ipv6 ospf6 dead-interval 4"
+          -c "ipv6 route fc00:6::/64 2001:9::6"
           -c "router ospf6"
           -c " ospf6 router-id 5.5.5.5"
           -c " interface lo area 0.0.0.0"
           -c " interface net0 area 0.0.0.0"
-          -c " interface net1 area 0.0.0.0"
           -c " interface net2 area 0.0.0.0"
-      - cmd: ip -6 route add fc00:5::6/128 encap seg6local action End.X nh6 fc00:6::1 dev net1
-      - cmd: ip -6 route add fc00:5::3/128 encap seg6local action End.X nh6 fc00:3::1 dev net2
+      # - cmd: ip -6 route add fc00:5::6/128 encap seg6local action End.X nh6 fc00:6::1 dev net1
+      # - cmd: ip -6 route add fc00:5::3/128 encap seg6local action End.X nh6 fc00:3::1 dev net2
 
   - name: R6
     cmds:
@@ -252,17 +265,15 @@ node_configs:
           -c " ipv6 ospf6 dead-interval 4"
           -c "interface net1"
           -c " ipv6 address 2001:9::6/64"
-          -c " ipv6 ospf6 hello-interval 1"
-          -c " ipv6 ospf6 dead-interval 4"
           -c "interface net2"
           -c " ipv6 address 2001:7::6/64"
           -c " ipv6 ospf6 hello-interval 1"
           -c " ipv6 ospf6 dead-interval 4"
+          -c "ipv6 route fc00:5::/64 2001:9::5"
           -c "router ospf6"
           -c " ospf6 router-id 6.6.6.6"
           -c " interface lo area 0.0.0.0"
           -c " interface net0 area 0.0.0.0"
-          -c " interface net1 area 0.0.0.0"
           -c " interface net2 area 0.0.0.0"
 
   - name: R7
