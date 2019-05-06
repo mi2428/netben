@@ -1,3 +1,5 @@
+![](topo.jpg)
+
 ## T.Insertだと動かないぞい
 C1からpingするとSegleft=0のSRH付きでC2に届いてしまう
 
