@@ -1,0 +1,99 @@
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: E1#net0 }
+      - { name: net1, type: direct, args: C1#net0 }
+
+  - name: E1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+      - { name: net1, type: direct, args: R2#net0 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: E1#net1 }
+      - { name: net1, type: direct, args: C2#net0 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net1 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net1 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: ip -6 addr add fc00:1::1/64 dev lo
+      - cmd: ip -6 addr add 2001:10::1/64 dev net0
+      - cmd: ip -6 addr add fd00:1::1/64 dev net1
+      - cmd: ip -6 route add fc00:2::/64 via 2001:10::3
+      - cmd: ip -6 route add fc00:3::/64 via 2001:10::3
+
+      - cmd: ip -6 route add fd00:2::2/128 encap seg6 mode inline segs fc00:3::1,fc00:2::1 dev net0
+      # - cmd: ip -6 route add fc00:1::10/128 encap seg6local action End via fd00:1::2
+
+  - name: E1
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net1.seg6_enabled=1'
+      - cmd: ip -6 addr add fc00:3::1/64 dev lo
+      - cmd: ip -6 addr add 2001:10::3/64 dev net0
+      - cmd: ip -6 addr add 2001:20::3/64 dev net1
+      - cmd: ip -6 route add fc00:2::/64 via 2001:20::2
+      - cmd: ip -6 route add fd00:2::/64 via 2001:20::2
+
+      # - cmd: ip -6 route add fd00:2::2/128 encap seg6local action End via fc00:2::1
+      # - cmd: ip -6 route add fd00:2::2/128 encap seg6 mode inline segs fc00:2::10 dev net0
+      # - cmd: ip -6 route add fc00:1::10/128 encap seg6local action End via fd00:1::2
+
+  - name: R2
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.lo.seg6_enabled=1'
+      - cmd: sysctl -w 'net.ipv6.conf.net0.seg6_enabled=1'
+      - cmd: ip -6 addr add fc00:2::1/64 dev lo
+      - cmd: ip -6 addr add 2001:20::2/64 dev net0
+      - cmd: ip -6 addr add fd00:2::1/64 dev net1
+      - cmd: ip -6 route add fc00:1::/64 via 2001:20::3
+
+      # - cmd: ip -6 route add fd00:1::2/128 encap seg6 mode inline segs fc00:1::10 dev net0
+      # - cmd: ip -6 route add fc00:2::10/128 encap seg6local action End via fd00:2::2
+
+  - name: C1
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: ip -6 addr add fd00:1::2/64 dev net0
+      - cmd: ip -6 route replace default via fd00:1::1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
+      - cmd: ip -6 addr add fd00:2::2/64 dev net0
+      - cmd: ip -6 route replace default via fd00:2::1
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - name: ping
+    cmds:
+      - cmd: docker exec C1 ping6 -c 2 fd00:2::2
+      - cmd: docker exec C2 ping6 -c 2 fd00:1::2
+
