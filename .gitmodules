@@ -10,3 +10,6 @@
 [submodule "sr-sfc-demo"]
 	path = sr-sfc-demo
 	url = https://github.com/SRouting/SR-sfc-demo
+[submodule "end.ac"]
+	path = end.ac
+	url = https://github.com/edenden/end.ac
