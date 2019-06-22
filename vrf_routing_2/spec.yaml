@@ -1,0 +1,81 @@
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+      - { name: net1, type: direct, args: C1#net0 }
+      - { name: net2, type: direct, args: C2#net0 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+      - { name: net1, type: direct, args: C3#net0 }
+      - { name: net2, type: direct, args: C4#net0 }
+
+  - name: C1
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net1 }
+
+  - name: C2
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R1#net2 }
+
+  - name: C3
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net1 }
+
+  - name: C4
+    image: slankdev/ubuntu:18.04
+    interfaces:
+      - { name: net0, type: direct, args: R2#net2 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+
+  - name: R2
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+
+  - name: R3
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+
+  - name: C1
+    cmds:
+      - cmd: ip addr add 10.100.1.100/24 dev net0
+      - cmd: ip route replace default via 10.100.1.1
+      - cmd: sh -c "echo C1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C2
+    cmds:
+      - cmd: ip addr add 10.200.1.100/24 dev net0
+      - cmd: ip route replace default via 10.200.1.1
+      - cmd: sh -c "echo C2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C3
+    cmds:
+      - cmd: ip addr add 10.100.2.100/24 dev net0
+      - cmd: ip route replace default via 10.100.2.1
+      - cmd: sh -c "echo C3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+  - name: C4
+    cmds:
+      - cmd: ip addr add 10.200.2.100/24 dev net0
+      - cmd: ip route replace default via 10.200.2.1
+      - cmd: sh -c "echo C4 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - name: ping
+    cmds:
+      - cmd: docker exec C1 ping -c2 10.100.2.100
+      - cmd: docker exec C2 ping -c2 10.200.2.100
