@@ -1,6 +1,7 @@
 ![](topo.jpg)
 
-RPF? Some sysctl commands may resolve this issue??
+- VRF乗り換え自体はうまく動いているけど，乗り換えた先でインターフェイス間の転送がされない（R2でnet0.200からnet2に転送されない）
+  - Red-Redの場合は転送もされる
 
 ### R1
 ```
