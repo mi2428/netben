@@ -36,8 +36,8 @@ nodes:
 node_configs:
   - name: R1
     cmds:
-      ## 1. Create new VLAN interfaces and define VRFs
-      ## 2. Assign VRF to physical/logical interfaces
+      ## 1. create new vlan interfaces and define vrfs
+      ## 2. assign vrf to physical/logical interfaces
       - cmd: ip link add link net0 name net0.100 type vlan id 100
       - cmd: ip link add link net0 name net0.200 type vlan id 200
       - cmd: ip link add blue type vrf table 100
@@ -47,6 +47,16 @@ node_configs:
       - cmd: ip link set dev net0.100 vrf blue
       - cmd: ip link set dev net0.200 vrf red
 
+      ## 3. Disable RPF (Below lines are minimum required)
+      # - cmd: sysctl -w 'net.ipv4.conf.all.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
+      - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
+      - cmd: sysctl -w 'net.ipv4.conf.net0/100.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net0/200.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net2.rp_filter=0'
+
+      - cmd: /usr/lib/frr/frr start
       - cmd: /usr/lib/frr/frr start
       - cmd: >-
           vtysh -c 'configure terminal'
@@ -87,6 +97,8 @@ node_configs:
 
   - name: R2
     cmds:
+      ## 1. create new vlan interfaces and define vrfs
+      ## 2. assign vrf to physical/logical interfaces
       - cmd: ip link add link net0 name net0.100 type vlan id 100
       - cmd: ip link add link net0 name net0.200 type vlan id 200
       - cmd: ip link add blue type vrf table 100
@@ -95,6 +107,15 @@ node_configs:
       - cmd: ip link set dev net2 vrf red
       - cmd: ip link set dev net0.100 vrf blue
       - cmd: ip link set dev net0.200 vrf red
+
+      ## 3. Disable RPF (Below lines are minimum required)
+      # - cmd: sysctl -w 'net.ipv4.conf.all.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
+      - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net0/100.rp_filter=0'
+      - cmd: sysctl -w 'net.ipv4.conf.net0/200.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+      # - cmd: sysctl -w 'net.ipv4.conf.net2.rp_filter=0'
 
       - cmd: /usr/lib/frr/frr start
       - cmd: >-
@@ -138,7 +159,7 @@ node_configs:
     cmds:
       - cmd: ip addr add 10.100.1.100/24 dev net0
       - cmd: ip route replace default via 10.100.1.1
-      - cmd: sh -c "echo C2 > index.html"
+      - cmd: sh -c "echo C1 > index.html"
       - cmd: nohup python3 -m http.server 80 &
 
   - name: C2
@@ -159,7 +180,7 @@ node_configs:
     cmds:
       - cmd: ip addr add 10.200.2.100/24 dev net0
       - cmd: ip route replace default via 10.200.2.1
-      - cmd: sh -c "echo C2 > index.html"
+      - cmd: sh -c "echo C4 > index.html"
       - cmd: nohup python3 -m http.server 80 &
 
 test:
