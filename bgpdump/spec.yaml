@@ -1,0 +1,49 @@
+
+nodes:
+  - name: R1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net0 }
+
+  - name: R2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net0 }
+
+node_configs:
+  - name: R1
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.24.28.100/32"
+          -c "interface net0"
+          -c " ip address 10.0.0.1/30"
+          -c "router bgp 65001"
+          -c " bgp router-id 10.24.28.100"
+          -c " neighbor 10.0.0.2 remote-as 65002"
+          -c " network 10.24.28.100/32"
+          -c " network 10.100.0.0/16"
+
+  - name: R2
+    cmds:
+      - cmd: /usr/lib/frr/frr start
+      - cmd: >-
+          vtysh -c "conf t"
+          -c "interface lo"
+          -c " ip address 10.24.28.200/32"
+          -c "interface net0"
+          -c " ip address 10.0.0.2/30"
+          -c "router bgp 65002"
+          -c " bgp router-id 10.24.28.200"
+          -c " neighbor 10.0.0.1 remote-as 65001"
+          -c " network 10.24.28.200/32"
+          -c " network 10.200.0.0/16"
+
+test:
+  - name: peer
+    cmds:
+      - cmd: docker exec R1 ping -c 2 10.24.28.200
+      - cmd: docker exec R2 ping -c 2 10.24.28.100
+
