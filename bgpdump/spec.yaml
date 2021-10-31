@@ -16,6 +16,8 @@ node_configs:
       - cmd: ip addr add 10.0.0.1/30 dev net0
       - cmd: >-
           vtysh -c "conf t"
+          -c "dump bgp all-et /tmp/all 1"
+          -c "dump bgp routes-mrt /tmp/routes 1"
           -c "router bgp 100"
           -c "   bgp router-id 1.1.1.1"
           -c "   neighbor 10.0.0.2 remote-as 200"
@@ -27,6 +29,8 @@ node_configs:
       - cmd: ip addr add 10.0.0.2/30 dev net0
       - cmd: >-
           vtysh -c "conf t"
+          -c "dump bgp all-et /tmp/all 1"
+          -c "dump bgp routes-mrt /tmp/routes 1"
           -c "router bgp 200"
           -c "   bgp router-id 2.2.2.2"
           -c "   neighbor 10.0.0.1 remote-as 100"
