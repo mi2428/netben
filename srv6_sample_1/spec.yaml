@@ -20,7 +20,7 @@ nodes:
   - name: CE
     image: docker.io/nicolaka/netshoot:latest
     interfaces:
-      - { name: net0, type: direct, args: C2#net0 }
+      - { name: net0, type: direct, args: S1#net0 }
       - { name: net1, type: direct, args: R2#net1 }
 
   - name: C1
@@ -28,7 +28,7 @@ nodes:
     interfaces:
       - { name: net0, type: direct, args: PE#net0 }
 
-  - name: C2
+  - name: S1
     image: docker.io/nicolaka/netshoot:latest
     interfaces:
       - { name: net0, type: direct, args: CE#net0 }
@@ -37,28 +37,48 @@ node_configs:
   - name: R1
     cmds:
       - cmd: sysctl -wq net.ipv6.conf.all.forwarding=1
-      #- cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: ip addr add 2001:12::1/64 dev net0
+      - cmd: ip addr add 2001:13::1/64 dev net1
+      - cmd: ip route add 2001:24::/64 via 2001:12::2
 
   - name: R2
     cmds:
       - cmd: sysctl -wq net.ipv6.conf.all.forwarding=1
-      #- cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: ip addr add 2001:12::2/64 dev net0
+      - cmd: ip addr add 2001:24::1/64 dev net1
+      - cmd: ip route add 2001:13::/64 via 2001:12::1
 
   - name: PE
     cmds:
       - cmd: sysctl -wq net.ipv6.conf.all.forwarding=1
-      #- cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: ip link add name vsix type vrf table 100
+      - cmd: ip link add name ngn type vrf table 200
+      - cmd: ip link set net0 master vsix
+      - cmd: ip link set net1 master ngn
+      - cmd: ip link set vsix up
+      - cmd: ip link set ngn up
+      - cmd: ip addr add 2001:1111::1/64 dev net0
+      - cmd: ip addr add 2001:13::2/64 dev net1
 
   - name: CE
     cmds:
       - cmd: sysctl -wq net.ipv6.conf.all.forwarding=1
-      #- cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: sysctl -wq net.vrf.strict_mode=1
+      - cmd: ip link add name overlay type vrf table 100
+      - cmd: ip link set net0 master overlay
+      - cmd: ip addr add 2001:2222::1/64 dev net0
+      - cmd: ip addr add 2001:24::2/64 dev net0
 
   - name: C1
     cmds:
-      - cmd: nohup python3 -m http.server 80 &
+      - cmd: ip addr add 2001:2222::2/64 dev net0
+      - cmd: ip route add default via 2001:2222::1
 
-  - name: C2
+  - name: S1
     cmds:
-      - cmd: nohup python3 -m http.server 80 &
+      - cmd: ip addr add 2001:1111::2/64 dev net0
+      - cmd: ip route add default via 2001:1111::1
 
